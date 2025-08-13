@@ -239,7 +239,7 @@ async def test_system_capabilities():
     test_cases = [
         # {"count": 6, "requirements": "Generate functional test cases with non-repetitive, Positive and Negative Scenarios, including criticality levels."},
         # {"count": 10, "requirements": "Generate functional test cases with non-repetitive, Positive and Negative Scenarios, including criticality levels."},
-        {"count": 16, "requirements": "Generate functional test cases with non-repetitive, Positive and Negative Scenarios, including criticality levels."}
+        {"count": 20, "requirements": "Generate functional test cases with non-repetitive, Positive and Negative Scenarios, including criticality levels."}
     ]
     
     for i, test_case in enumerate(test_cases, 1):
