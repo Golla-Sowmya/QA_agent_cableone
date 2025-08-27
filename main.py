@@ -7,16 +7,16 @@ class IntelligentRAGSystem:
     
     def __init__(self, test_cases_directory: str = r"C:\Users\sgolla\Downloads\QA_agent\Test_case_generator\test_cases"):
         """Initialize with enhanced RAG integration"""
-        print("🚀 Initializing Enhanced Intelligent RAG System...")
+        print("Initializing Enhanced Intelligent RAG System...")
         self.system = MultiAgentRAGSystem(test_cases_directory)
         
         # Show RAG integration status
         rag_status = self.system.get_rag_status()
-        print("✅ Enhanced Multi-Agent RAG System Ready!")
-        print("🤖 Architecture: Coordinator → Retriever → Generator (ALL with RAG)")
-        print(f"🧠 RAG Integration: {rag_status['rag_chunks_loaded']} business contexts loaded")
-        print(f"📊 Categories: {', '.join(rag_status['available_categories'])}")
-        print(f"👥 Segments: {', '.join(rag_status['available_segments'])}")
+        print("Enhanced Multi-Agent RAG System Ready!")
+        print("Architecture: Coordinator -> Retriever -> Generator (ALL with RAG)")
+        print(f"RAG Integration: {rag_status['rag_chunks_loaded']} business contexts loaded")
+        print(f"Categories: {', '.join(rag_status['available_categories'])}")
+        print(f"Segments: {', '.join(rag_status['available_segments'])}")
     
     # Add method to get enhanced system info
     def get_enhanced_system_info(self) -> Dict:
@@ -38,22 +38,23 @@ class IntelligentRAGSystem:
         return base_info
     
     async def get_test_cases_from_user_story(self, user_story: str, additional_requirements: str = "", 
-                                           number_of_test_cases: int = 4) -> Dict:
+                                           number_of_test_cases: int = None) -> Dict:
         """Generate test cases from user story using multi-agent approach
         
         Args:
             user_story: The user story describing the requirements
             additional_requirements: Any additional testing requirements  
-            number_of_test_cases: Number of test cases to generate
+            number_of_test_cases: Number of test cases to generate (None for intelligent detection)
             
         Returns:
             Dictionary containing test cases, summary, and detailed output
         """
         
         try:
-            print(f"\n📝 Processing User Story Request:")
-            print(f"   📊 Requested test cases: {number_of_test_cases}")
-            print(f"   📋 Additional requirements: {additional_requirements or 'None'}")
+            print(f"\n Processing User Story Request:")
+            test_case_info = f"{number_of_test_cases}" if number_of_test_cases else "Intelligent Detection"
+            print(f"    Requested test cases: {test_case_info}")
+            print(f"    Additional requirements: {additional_requirements or 'None'}")
             
             # Use multi-agent system to generate test cases
             result = await self.system.generate_test_cases(
@@ -93,19 +94,19 @@ class IntelligentRAGSystem:
             "# INTELLIGENT MULTI-AGENT RAG TEST CASE GENERATION",
             "=" * 70,
             "",
-            "## 📋 REQUEST DETAILS",
+            "##  REQUEST DETAILS",
             f"**User Story**: {user_story}",
             f"**Additional Requirements**: {additional_requirements or 'None specified'}",
             f"**Requested Test Cases**: {summary['total_retrieved'] + summary['total_generated']}",
             f"**Generated on**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
             "",
-            "## 🤖 MULTI-AGENT PROCESS RESULTS",
-            f"**🎯 Coordinator Agent**: Analyzed requirements → {len(requirements)} requirement types",
-            f"**🔍 Retrieval Agent**: Found existing test cases → {summary['total_retrieved']} retrieved", 
-            f"**🔧 Generation Agent**: Created missing test cases → {summary['total_generated']} generated",
-            f"**📊 Total Delivered**: {summary['total_delivered']} test cases",
+            "##  MULTI-AGENT PROCESS RESULTS",
+            f"** Coordinator Agent**: Analyzed requirements -> {len(requirements)} requirement types",
+            f"** Retrieval Agent**: Found existing test cases -> {summary['total_retrieved']} retrieved", 
+            f"** Generation Agent**: Created missing test cases -> {summary['total_generated']} generated",
+            f"** Total Delivered**: {summary['total_delivered']} test cases",
             "",
-            "## 📋 REQUIREMENT BREAKDOWN",
+            "##  REQUIREMENT BREAKDOWN",
             ""
         ]
         
@@ -118,7 +119,7 @@ class IntelligentRAGSystem:
         
         if summary['total_generated'] > 0:
             output_lines.extend([
-                "## 🔧 GENERATION TRANSPARENCY",
+                "##  GENERATION TRANSPARENCY",
                 ""
             ])
             
@@ -132,17 +133,17 @@ class IntelligentRAGSystem:
                 ])
         
         output_lines.extend([
-            "## 📋 COMPLETE TEST CASES",
+            "##  COMPLETE TEST CASES",
             ""
         ])
         
         for i, tc in enumerate(result['test_cases'], 1):
             if tc['is_generated']:
-                status_icon = "🔧"
+                status_icon = "[GEN]"
                 status_text = "GENERATED"
                 source_info = f"**Template Used**: {', '.join(tc['template_sources'])}\n**Generation Logic**: {tc['generation_reasoning']}"
             else:
-                status_icon = "📁"
+                status_icon = "[RET]"
                 status_text = "RETRIEVED"
                 source_info = "**Source**: Existing test case library"
             
@@ -163,7 +164,7 @@ class IntelligentRAGSystem:
             ])
         
         output_lines.extend([
-            "## 📊 SUMMARY STATISTICS",
+            "##  SUMMARY STATISTICS",
             f"- **Total Test Cases Delivered**: {summary['total_delivered']}",
             f"- **Retrieved from Library**: {summary['total_retrieved']}",
             f"- **Generated New**: {summary['total_generated']}",
@@ -209,7 +210,7 @@ import os
 async def test_system_capabilities():
     """Test the multi-agent system with various scenarios"""
     
-    print("🚀 Testing Intelligent Multi-Agent RAG System")
+    print(" Testing Intelligent Multi-Agent RAG System")
     print("=" * 60)
     
     # Initialize the system
@@ -217,68 +218,75 @@ async def test_system_capabilities():
     
     # Get system information
     system_info = system.get_system_info()
-    print(f"\n📋 System Information:")
+    print(f"\n System Information:")
     print(f"   Name: {system_info['system_name']}")
     print(f"   Version: {system_info['version']}")
     print(f"   Available Test Cases: {system_info['status']['total_test_cases']}")
     
     # Test user story
     user_story = """
-    As a Development Manager, I would like a process built where the eero association process can retrieve Orders and enable the Cable One to eero association (account to device) for the device.
-    
-    Acceptance criteria:
+        As a Development Manager, I would like a process built where the eero association process can retrieve Orders and enable the Cable One to eero association (account to device) for the device.
+        Acceptance Criteria
+
         We have provided a way for the eero association process to pick up orders that have eero equipment added to them
-            the eero device(s) for the given Customer is (are) associated in the eero cloud
-            eero device Serial Number(s) is (are) associated to the Customer AccountID
-            the ACP AccountID is captured in eero cloud as the "Partner Account ID"
+        the eero device(s) for the given Customer is (are) associated in the eero cloud
+        eero device Serial Number(s) is (are) associated to the Customer AccountID
+        the ACP AccountID is captured in eero cloud as the "Partner Account ID"
         if it's a new Customer, the Customer account is created in eero cloud
-            the Customer type (Residential or Commercial (Business)) is correctly populated in eero cloud
-    """
+        the Customer type (Residential or Commercial (Business)) is correctly populated in eero cloud
+"""
     
-    # Test different scales
+    # Test intelligent count detection (no hardcoded count)
     test_cases = [
-        # {"count": 6, "requirements": "Generate functional test cases with non-repetitive, Positive and Negative Scenarios, including criticality levels."},
-        # {"count": 10, "requirements": "Generate functional test cases with non-repetitive, Positive and Negative Scenarios, including criticality levels."},
-        {"count": 20, "requirements": "Generate functional test cases with non-repetitive, Positive and Negative Scenarios, including criticality levels."}
+        {"requirements": "Generate functional test cases with non-repetitive, Positive and Negative Scenarios, including criticality levels."}
     ]
     
     for i, test_case in enumerate(test_cases, 1):
         print(f"\n{'='*60}")
-        print(f"TEST {i}: GENERATING {test_case['count']} TEST CASES")
+        # Use intelligent count detection - no hardcoded count
+        if 'count' in test_case:
+            print(f"TEST {i}: GENERATING {test_case['count']} TEST CASES")
+        else:
+            print(f"TEST {i}: INTELLIGENT COUNT DETECTION")
         print(f"{'='*60}")
         
         try:
             result = await system.get_test_cases_from_user_story(
                 user_story=user_story,
                 additional_requirements=test_case['requirements'],
-                number_of_test_cases=test_case['count']
+                number_of_test_cases=test_case.get('count', None)  # None triggers intelligent detection
             )
             
             if result['status'] == 'success':
                 summary = result['summary']
-                print(f"\n✅ TEST {i} - SUCCESS!")
-                print(f"   📊 Requested: {test_case['count']}")
-                print(f"   📁 Retrieved: {summary['total_retrieved']}")
-                print(f"   🔧 Generated: {summary['total_generated']}")
-                print(f"   📋 Delivered: {summary['total_delivered']}")
-                print(f"   🎯 Success Rate: {(summary['total_delivered']/test_case['count']*100):.1f}%")
+                print(f"\n SUCCESS TEST {i}!")
+                requested_count = test_case.get('count', 'Intelligent Detection')
+                print(f"    Requested: {requested_count}")
+                print(f"    Retrieved: {summary['total_retrieved']}")
+                print(f"    Generated: {summary['total_generated']}")
+                print(f"    Delivered: {summary['total_delivered']}")
+                if 'count' in test_case:
+                    print(f"    Success Rate: {(summary['total_delivered']/test_case['count']*100):.1f}%")
+                else:
+                    print(f"    Intelligent Detection: Generated {summary['total_delivered']} test cases based on story analysis")
                 
                 # Show agent performance
-                print(f"\n🤖 Agent Performance:")
-                print(f"   🎯 Coordinator: {len(result['requirements'])} requirements identified")
-                print(f"   🔍 Retriever: {summary['total_retrieved']} existing test cases found")
-                print(f"   🔧 Generator: {summary['total_generated']} new test cases created")
+                print(f"\n Agent Performance:")
+                print(f"    Coordinator: {len(result['requirements'])} requirements identified")
+                print(f"    Retriever: {summary['total_retrieved']} existing test cases found")
+                print(f"    Generator: {summary['total_generated']} new test cases created")
                 
                 # Save detailed output for the last test
                 if i == len(test_cases):
-                    await save_detailed_output(result, test_case['count'])
+                    actual_count = test_case.get('count', summary['total_delivered'])
+                    await save_detailed_output(result, actual_count)
                 
             else:
-                print(f"\n❌ TEST {i} - FAILED!")
+                print(f"\n FAILED TEST {i}!")
                 print(f"   Error: {result.get('error', 'Unknown error')}")
         
         except Exception as e:
-            print(f"\n❌ TEST {i} - EXCEPTION!")
+            print(f"\n EXCEPTION TEST {i}!")
             print(f"   Exception: {str(e)}")
 
 async def save_detailed_output(result, test_count):
@@ -293,7 +301,7 @@ async def save_detailed_output(result, test_count):
         with open(output_path, 'w', encoding='utf-8') as f:
             f.write(result['final_output'])
         
-        print(f"\n📁 Detailed output saved to: {output_path}")
+        print(f"\n Detailed output saved to: {output_path}")
         
     except Exception as e:
         print(f"\n⚠️  Failed to save output: {e}")
@@ -318,21 +326,21 @@ async def demo_single_generation():
     )
     
     if result['status'] == 'success':
-        print("\n✅ DEMO SUCCESS!")
+        print("\n DEMO SUCCESS!")
         
         # Show test case titles
-        print("\n📋 Generated Test Cases:")
+        print("\n Generated Test Cases:")
         for i, tc in enumerate(result['test_cases'], 1):
-            status = "🔧 Generated" if tc['is_generated'] else "📁 Retrieved"
+            status = " Generated" if tc['is_generated'] else " Retrieved"
             print(f"   {i}. {status}: {tc['title']}")
     else:
-        print(f"\n❌ DEMO FAILED: {result.get('error')}")
+        print(f"\n DEMO FAILED: {result.get('error')}")
 
 async def main():
     """Main function to run all tests"""
     
-    print("🤖 Intelligent Multi-Agent RAG Test Case Generation System")
-    print("🎯 Testing comprehensive capabilities...")
+    print("Intelligent Multi-Agent RAG Test Case Generation System")
+    print("Testing comprehensive capabilities...")
     
     # Run capability tests
     await test_system_capabilities()
@@ -341,8 +349,8 @@ async def main():
     await demo_single_generation()
     
     print(f"\n{'='*60}")
-    print("🎉 ALL TESTS COMPLETE!")
-    print("✅ Multi-Agent RAG System validated and ready for production use")
+    print("ALL TESTS COMPLETE!")
+    print("Multi-Agent RAG System validated and ready for production use")
     print(f"{'='*60}")
 
 if __name__ == "__main__":
