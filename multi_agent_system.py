@@ -24,6 +24,8 @@ class MultiAgentRAGSystem:
     
     def __init__(self, test_cases_directory: str = r"C:\Users\sgolla\Downloads\QA_agent\Test_case_generator\test_cases"):
         self.test_cases_dir = Path(test_cases_directory)
+        self.generated_cases_dir = Path(__file__).parent / "generated_test_cases"  # Separate folder for generated cases
+        self.generated_cases_dir.mkdir(exist_ok=True)  # Create if doesn't exist
         self.parser = TestCaseParser()
         self.test_cases = []
         
@@ -32,16 +34,12 @@ class MultiAgentRAGSystem:
         self.rag_context = TestCaseRAGContext()
         print(f" RAG Context loaded: {len(self.rag_context.chunks)} chunks available")
         
-        # Initialize LLM with o1-mini specific settings
-        model_name = os.getenv("AZURE_OPENAI_LLM_MODEL", "o1-mini")
+        # Initialize LLM with GPT settings (using defaults for model compatibility)
         self.llm = AzureChatOpenAI(
             azure_endpoint=os.getenv("AZURE_OPENAI_API_BASE"),
             api_key=os.getenv("AZURE_OPENAI_API_KEY"),
             api_version=os.getenv("AZURE_OPENAI_API_VERSION"),
             deployment_name=os.getenv("AZURE_OPENAI_LLM_MODEL_DEPLOYMENT"),
-            model_name=model_name,
-            temperature=1 if model_name != "o1-mini" else 0.1,  # o1-mini works better with lower temperature
-            max_tokens=4000,
             timeout=60
         )
         
@@ -49,16 +47,17 @@ class MultiAgentRAGSystem:
         self._load_test_cases()
         
         # Initialize agents with RAG context
-        print(" Initializing Enhanced Agents...")
-        self.coordinator = CoordinatorAgent(self.llm)
+        print(" Initializing Simplified Agents...")
+        self.coordinator = CoordinatorAgent(self.llm, self.rag_context)
         self.retriever = RetrievalAgent(self.llm, self.test_cases, self.rag_context)  # Pass RAG context
         self.generator = GenerationAgent(self.llm, self.test_cases, self.rag_context)  # Pass RAG context
         
-        print(f" Enhanced Multi-Agent System Initialized:")
-        print(f"    Coordinator Agent: Ready")
-        print(f"    Retrieval Agent: {len(self.test_cases)} test cases + RAG context")
-        print(f"    Generation Agent: Template adaptation + RAG context")
+        print(f" Hybrid Multi-Agent System Initialized:")
+        print(f"    Coordinator Agent: EeroCombinationDetector + GPT hybrid")
+        print(f"    Retrieval Agent: {len(self.test_cases)} test cases (filtered)")
+        print(f"    Generation Agent: Template adaptation + Pydantic output")
         print(f"    RAG Context: {len(self.rag_context.chunks)} business contexts")
+        print(f"    Business Intelligence: 31 predefined eero combinations loaded")
     
     def _load_test_cases(self):
         """Load all existing test cases"""
@@ -107,15 +106,17 @@ class MultiAgentRAGSystem:
         print(f"\n Multi-Agent System: Generating {number_of_test_cases} test cases...")
         print(f"{'='*60}")
         
-        # Step 1: Coordinator analyzes requirements
-        print(f" STEP 1: Coordinator Agent analyzing requirements...")
+        # Step 1: Coordinator analyzes requirements (now hybrid: business intelligence + GPT)
+        print(f" STEP 1: Hybrid Coordinator analyzing requirements...")
         requirements = await self.coordinator.analyze_requirements(
             user_story, additional_requirements, number_of_test_cases
         )
         
         print(f" Coordinator Result: {len(requirements)} requirement types identified")
         for req in requirements:
-            print(f"   - {req.customer_type}-{req.scenario_type}-{req.truck_roll_type}Truck (need {req.count_needed})")
+            # Use descriptive name if available, otherwise fall back to generic format
+            display_name = getattr(req, 'descriptive_name', f"{req.customer_type}-{req.scenario_type}-{req.truck_roll_type}Truck")
+            print(f"   - {display_name} (need {req.count_needed})")
         
         # Step 2: Process each requirement with Retrieval and Generation agents
         print(f"\n STEP 2: Processing each requirement...")
@@ -127,7 +128,9 @@ class MultiAgentRAGSystem:
         retrieved_test_case_ids = set()  # Track unique test cases to prevent duplicates
         
         for i, req in enumerate(requirements, 1):
-            print(f"\n Requirement {i}: {req.customer_type}-{req.scenario_type}-{req.truck_roll_type}Truck (need {req.count_needed})")
+            # Use descriptive name if available, otherwise fall back to generic format
+            display_name = getattr(req, 'descriptive_name', f"{req.customer_type}-{req.scenario_type}-{req.truck_roll_type}Truck")
+            print(f"\n Requirement {i}: {display_name} (need {req.count_needed})")
             
             # Try retrieval first
             print(f" Retrieval Agent: Searching for existing test cases...")
@@ -172,13 +175,15 @@ class MultiAgentRAGSystem:
                 for j in range(missing_count):
                     print(f"    Generating test case {j+1}/{missing_count}...")
                     
-                    # Create single requirement for generation
+                    # Create single requirement for generation - preserve exact combination description
                     single_req = TestCaseRequirement(
                         customer_type=req.customer_type,
                         scenario_type=req.scenario_type,
                         truck_roll_type=req.truck_roll_type,
                         count_needed=1,
-                        priority=req.priority
+                        priority=req.priority,
+                        descriptive_name=getattr(req, 'descriptive_name', ''),
+                        exact_combination_description=getattr(req, 'exact_combination_description', '')
                     )
                     
                     generated_case = await self.generator.generate_test_case(single_req, user_story)
@@ -206,7 +211,7 @@ class MultiAgentRAGSystem:
         # Don't limit results prematurely - let all unique test cases be processed
         # Only limit if we have more results than the requested count for final presentation
         results_to_format = all_results
-        if len(all_results) > number_of_test_cases:
+        if number_of_test_cases and len(all_results) > number_of_test_cases:
             print(f"   Note: System found {len(all_results)} test cases, limiting final output to {number_of_test_cases} for presentation")
             results_to_format = all_results[:number_of_test_cases]
         
@@ -255,15 +260,15 @@ class MultiAgentRAGSystem:
         }
     
     async def _save_generated_test_case(self, test_case: TestCase):
-        """Save generated test case to file system for future use"""
+        """Save generated test case to separate folder to avoid confusion"""
         try:
             filename = f"{test_case.id}.txt"
-            file_path = self.test_cases_dir / filename
+            file_path = self.generated_cases_dir / filename  # Save to generated folder
             
             with open(file_path, 'w', encoding='utf-8') as f:
                 f.write(test_case.content)
             
-            print(f"    Saved to file: {filename}")
+            print(f"    Saved to generated folder: {filename}")
             
         except Exception as e:
             print(f"    Save failed: {e}")

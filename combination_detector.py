@@ -373,8 +373,24 @@ class EeroCombinationDetector:
             scenario_type = combo["order_type"]
             truck_roll_type = "With" if combo["truck_roll"] == "with" else "No"
             
-            # Create grouping key for consolidation
-            group_key = f"{customer_type}-{scenario_type}-{truck_roll_type}"
+            # Create balanced grouping key - smart consolidation with critical ID preservation
+            customer_status = combo.get("customer_status", "")
+            eero_type = combo.get("eero_type", "")
+            
+            # Only create specific keys for critical IDs 29-31 to preserve their distinction
+            if combo["id"] in [29, 30, 31]:
+                # These critical device removal scenarios need unique identification
+                scenario_map = {
+                    "remove_device_not_gateway": "WithAdditionalEeroBusinessRemoveDeviceGatewayNo",
+                    "remove_device_gateway": "WithAdditionalEeroBusinessRemoveDeviceGatewayYes", 
+                    "remove_eero_along_device": "WithAdditionalEeroBusinessRemoveEeroServiceDevice",
+                    "remove_eero_service_device": "WithAdditionalEeroBusinessRemoveEeroServiceDevice"
+                }
+                scenario_desc = scenario_map.get(eero_type, eero_type.replace("_", "").title())
+                group_key = f"{customer_type}-{scenario_type}-{truck_roll_type}Truck-{scenario_desc}"
+            else:
+                # For all other scenarios, use standard consolidation
+                group_key = f"{customer_type}-{scenario_type}-{truck_roll_type}Truck"
             
             if group_key not in requirement_groups:
                 requirement_groups[group_key] = {
@@ -401,7 +417,8 @@ class EeroCombinationDetector:
                 scenario_type=group_data["scenario_type"],
                 truck_roll_type=group_data["truck_roll_type"],
                 count_needed=group_data["count_needed"],
-                priority=group_data["priority"]
+                priority=group_data["priority"],
+                descriptive_name=group_key  # Preserve the descriptive group key
             )
             
             # Add metadata from the first combination in the group
@@ -415,6 +432,7 @@ class EeroCombinationDetector:
             req.customer_status = combo["customer_status"]
             req.description = f"Consolidated: {len(group_data['combinations'])} combinations for {group_key}"
             req.match_score = detection["match_score"]
+            req.exact_combination_description = combo.get("description", "")  # Store exact combination description
             
             # Store all combinations for reference
             req.all_combinations = group_data["combinations"]
@@ -422,7 +440,7 @@ class EeroCombinationDetector:
             requirements.append(req)
         
         print(f"   Requirement Consolidation: {len(detected_combinations)} combinations -> {len(requirements)} unique requirements")
-        for req in requirements:
-            print(f"     {req.customer_type}-{req.scenario_type}-{req.truck_roll_type}Truck: need {req.count_needed}")
+        for group_key, group_data in requirement_groups.items():
+            print(f"     {group_key}: need {group_data['count_needed']}")
         
         return requirements

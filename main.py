@@ -224,18 +224,34 @@ async def test_system_capabilities():
     print(f"   Available Test Cases: {system_info['status']['total_test_cases']}")
     
     # Test user story
-    user_story = """
-        As a Development Manager, I would like a process built where the eero association process can retrieve Orders and enable the Cable One to eero association (account to device) for the device.
-        Acceptance Criteria
+    # user_story = """
+    #     As a Development Manager, I would like a process built where the eero association process can retrieve Orders and enable the Cable One to eero association (account to device) for the device.
+    #     Acceptance Criteria
 
-        We have provided a way for the eero association process to pick up orders that have eero equipment added to them
-        the eero device(s) for the given Customer is (are) associated in the eero cloud
-        eero device Serial Number(s) is (are) associated to the Customer AccountID
-        the ACP AccountID is captured in eero cloud as the "Partner Account ID"
-        if it's a new Customer, the Customer account is created in eero cloud
-        the Customer type (Residential or Commercial (Business)) is correctly populated in eero cloud
-"""
-    
+    #     We have provided a way for the eero association process to pick up orders that have eero equipment added to them
+    #     the eero device(s) for the given Customer is (are) associated in the eero cloud
+    #     eero device Serial Number(s) is (are) associated to the Customer AccountID
+    #     the ACP AccountID is captured in eero cloud as the "Partner Account ID"
+    #     if it's a new Customer, the Customer account is created in eero cloud
+    #     the Customer type (Residential or Commercial (Business)) is correctly populated in eero cloud
+# """
+    user_story = """
+    As a product manager, I would like eero's added in ACP to be associated to accounts when they are added so that we billing eero correctly for customers with eero devices.
+    Acceptance Criteria
+
+    eero devices added in ACP on accounts are associated to an ACP account number in eero insights
+    eero devices removed in ACP on accounts are disassociated to an ACP account number in eero insights
+    """
+
+    # user_story = """
+    # As a development manager, I would like a process built where the eero association process can retrieve orders in order for them to enable eero Plus for Residential Customers.
+    # Acceptance Criteria
+
+    # We have provided a way for the eero association process to pick up orders that have eero Plus option added to them (should be service code HE009)
+    # the eero Plus option is activated for this Customer on the eero Kafka queue
+    # note: the old name for eero Plus was "SecurePlus", and the parameter (plan_name) may still expect the old value "SecurePlus"
+    # """
+
     # Test intelligent count detection (no hardcoded count)
     test_cases = [
         {"requirements": "Generate functional test cases with non-repetitive, Positive and Negative Scenarios, including criticality levels."}
