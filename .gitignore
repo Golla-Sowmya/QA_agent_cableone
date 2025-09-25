@@ -6,3 +6,4 @@ playwright_test.py
 test_case_contexts.json
 generated_test_cases
 playwright_code.py
+.env.example

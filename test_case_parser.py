@@ -39,10 +39,17 @@ import re
 from typing import List, Dict
 from pathlib import Path
 
-# Add the correct path to import RAG_context
-sys.path.append(r"C:\Users\sgolla\Downloads\QA_agent\Test_case_generator")
-# sys.path.append(r"C:\Users\sgolla\Downloads\QA_agent\Test_case_generator\test_cases")
-from RAG_context import TestCaseRAGContext
+# Import RAG_context with fallback handling
+try:
+    from RAG_context import TestCaseRAGContext  # Try local import first
+except ImportError:
+    # Fallback to external path if available
+    external_path = os.getenv('TEST_CASE_GENERATOR_PATH', '../Test_case_generator')
+    if os.path.exists(external_path):
+        sys.path.append(external_path)
+        from RAG_context import TestCaseRAGContext
+    else:
+        raise ImportError("RAG_context not found. Please set TEST_CASE_GENERATOR_PATH environment variable.")
 
 class TestCaseParser:
     """Parse test cases from files with RAG context integration"""

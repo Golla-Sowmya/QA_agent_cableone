@@ -5,7 +5,7 @@ from multi_agent_system import MultiAgentRAGSystem
 class IntelligentRAGSystem:
     """Updated interface with RAG status reporting"""
     
-    def __init__(self, test_cases_directory: str = r"C:\Users\sgolla\Downloads\QA_agent\Test_case_generator\test_cases"):
+    def __init__(self, test_cases_directory: str = None):
         """Initialize with enhanced RAG integration"""
         print("Initializing Enhanced Intelligent RAG System...")
         self.system = MultiAgentRAGSystem(test_cases_directory)

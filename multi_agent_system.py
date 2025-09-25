@@ -7,9 +7,17 @@ from dotenv import load_dotenv
 
 from langchain_openai import AzureChatOpenAI
 
-# Add the correct path to import RAG_context
-sys.path.append(r"C:\Users\sgolla\Downloads\QA_agent\Test_case_generator")
-from RAG_context import TestCaseRAGContext  # Import the RAG context
+# Import RAG_context from current directory
+try:
+    from RAG_context import TestCaseRAGContext  # Try local import first
+except ImportError:
+    # Fallback to external path if available
+    external_path = os.getenv('TEST_CASE_GENERATOR_PATH', '../Test_case_generator')
+    if os.path.exists(external_path):
+        sys.path.append(external_path)
+        from RAG_context import TestCaseRAGContext
+    else:
+        raise ImportError("RAG_context not found. Please set TEST_CASE_GENERATOR_PATH environment variable.")
 
 from test_case_parser import TestCase, TestCaseRequirement
 from test_case_parser import TestCaseParser
@@ -22,7 +30,11 @@ load_dotenv()
 class MultiAgentRAGSystem:
     """Enhanced Multi-Agent RAG System with proper RAG context integration"""
     
-    def __init__(self, test_cases_directory: str = r"C:\Users\sgolla\Downloads\QA_agent\Test_case_generator\test_cases"):
+    def __init__(self, test_cases_directory: str = None):
+        # Set test cases directory with fallback options
+        if test_cases_directory is None:
+            test_cases_directory = os.getenv('TEST_CASES_DIRECTORY', 
+                                           os.path.join(os.path.dirname(__file__), '..', 'test_cases'))
         self.test_cases_dir = Path(test_cases_directory)
         self.generated_cases_dir = Path(__file__).parent / "generated_test_cases"  # Separate folder for generated cases
         self.generated_cases_dir.mkdir(exist_ok=True)  # Create if doesn't exist
